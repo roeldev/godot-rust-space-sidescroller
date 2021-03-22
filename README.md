@@ -1,0 +1,13 @@
+# Space sidescroller created with Godot and godot-rust
+
+This project is a [`godot-rust`](https://github.com/godot-rust/godot-rust) version of the tutorial series [`Godot Space Sidescroller`](https://www.youtube.com/watch?v=qZOOruWMRT8&list=PL6bQeQE-ybqAzXZlZCiRKCtu6RbkXLgmh). All assets and original GDScript code are provided by PlugWorld.
+
+## Created with
+<a href="https://www.jetbrains.com/?from=roeldev" target="_blank"><img src="https://blog.jetbrains.com/wp-content/uploads/2019/01/clion_icon.svg" width="35" /></a>
+ <a href="https://godotengine.org/" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6a/Godot_icon.svg" width=35 /></a>
+
+## License
+Copyright © 2021 [Roel Schut](https://roelschut.nl). All rights reserved.
+
+This project is governed by a BSD-style license that can be found in the [LICENSE](LICENSE) file.
+The license only applies to my implementation of PlugWorld's tutorial/code.
