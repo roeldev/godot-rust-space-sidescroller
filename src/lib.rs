@@ -4,17 +4,23 @@
 
 use gdnative::prelude::*;
 
-extern crate rand;
-
+mod global;
 mod world;
 mod player;
-mod player_bullet;
+mod enemies;
+mod particles;
+mod signals;
 mod utils;
 
 fn init(handle: InitHandle) {
+    handle.add_class::<global::Global>();
     handle.add_class::<world::World>();
     handle.add_class::<player::Player>();
-    handle.add_class::<player_bullet::PlayerBullet>()
+    handle.add_class::<player::PlayerBullet>();
+    handle.add_class::<player::PlayerDestroyParticles>();
+    handle.add_class::<enemies::EnemyGenerator>();
+    handle.add_class::<enemies::Enemy1>();
+    handle.add_class::<particles::DestroyParticles>();
 }
 
 godot_init!(init);

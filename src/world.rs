@@ -3,7 +3,10 @@
 // license that can be found in the LICENSE file.
 
 use gdnative::prelude::*;
-use crate::utils::*;
+use crate::*;
+use crate::global::Global;
+
+pub const ON_INSTANCE_NODE: &str = "_on_instance_node";
 
 #[derive(NativeClass)]
 #[inherit(Node)]
@@ -16,17 +19,35 @@ impl World {
     }
 
     #[export]
-    fn _on_player_create_bullet(&self, owner: &Node, bullet: Variant, location: Variant) {
-        let bullet_instance = try_variant_to_instance(bullet, PackedScene::GEN_EDIT_STATE_DISABLED).unwrap();
-        let bullet_instance = unsafe { bullet_instance.assume_safe() };
-        let bullet_instance = bullet_instance.cast::<Sprite>()
-            .expect("Failed to cast bullet Node to Sprite");
+    fn _ready(&self, owner: &Node) {
+        Global::instance(owner)
+            .map_mut(|global, _| unsafe {
+                global.set_world(Some(owner.assume_shared()))
+            })
+            .expect("Failed to set Global.world");
 
-        owner.add_child(bullet_instance, false);
+        godot_print!("> world ready");
+    }
 
-        let location = location.try_to_vector2().expect("Failed to try location as Vector2");
-        let mut pos = bullet_instance.global_position();
-        pos.y = location.y;
-        bullet_instance.set_global_position(pos);
+    #[export]
+    fn _exit_tree(&self, owner: &Node) {
+        Global::instance(owner)
+            .map_mut(|global, _| { global.set_world(None) })
+            .expect("Failed to set Global.world");
+    }
+
+    #[export]
+    fn _on_instance_node(&self, owner: &Node, node: Variant, location: Variant) -> TRef<Node2D> {
+        let instance = utils::try_variant_to_instance(node, PackedScene::GEN_EDIT_STATE_DISABLED).unwrap();
+        let instance = unsafe { instance.assume_safe() };
+        let node = instance.cast::<Node2D>()
+            .expect("Failed to cast `node` to Node2D");
+
+        owner.add_child(node, false);
+        node.set_global_position(location
+            .try_to_vector2()
+            .expect("Failed to try `location` as Vector2")
+        );
+        return node;
     }
 }

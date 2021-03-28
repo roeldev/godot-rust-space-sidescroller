@@ -18,6 +18,10 @@ _global_script_class_icons={
 config/name="tutorial_space-sidescroller"
 run/main_scene="res://World.tscn"
 
+[autoload]
+
+Global="*res://Global.gdns"
+
 [display]
 
 window/size/width=160
@@ -72,4 +76,5 @@ quality/driver/driver_name="GLES2"
 quality/2d/use_pixel_snap=true
 vram_compression/import_etc=true
 vram_compression/import_etc2=false
+environment/default_clear_color=Color( 0.392157, 0.227451, 0.341176, 1 )
 environment/default_environment="res://default_env.tres"

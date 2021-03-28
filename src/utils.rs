@@ -19,12 +19,17 @@ pub fn find_node<T>(owner: &Node, name: &str) -> Ref<T, Shared>
 }
 
 #[allow(dead_code)]
-pub fn preload(path: &str) -> Option<Ref<PackedScene, Shared>> {
-    let scene = ResourceLoader::godot_singleton().load(path, "PackedScene", false)?;
+pub fn preload(path: &str) -> Ref<PackedScene, Shared> {
+    let scene = ResourceLoader::godot_singleton()
+        .load(path, "PackedScene", false)
+        .expect(format!("Failed to preload {}", path).deref());
+
     let scene = unsafe { scene.assume_unique().into_shared() };
-    scene.cast::<PackedScene>()
+    return scene.cast::<PackedScene>()
+        .expect("Failed to cast Resource to PackedScene");
 }
 
+#[allow(dead_code)]
 pub fn try_variant_to_instance(variant: Variant, edit_state: i64) -> Option<Ref<Node, Shared>> {
     let scene: Ref<PackedScene, Shared> = variant.try_to_object::<PackedScene>()?;
     let scene = unsafe { scene.assume_safe() };
