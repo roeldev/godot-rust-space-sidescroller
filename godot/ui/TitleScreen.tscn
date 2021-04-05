@@ -1,0 +1,47 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://ui/font/SmallFont.tres" type="DynamicFont" id=1]
+[ext_resource path="res://ui/font/TitleFont.tres" type="DynamicFont" id=2]
+[ext_resource path="res://ui/StartButton.gd" type="Script" id=3]
+[ext_resource path="res://ui/theme/Theme.tres" type="Theme" id=4]
+
+[node name="TitleScreen" type="Node2D"]
+
+[node name="Control" type="Control" parent="."]
+margin_right = 160.0
+margin_bottom = 90.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="StartButton" type="Button" parent="Control"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -16.0
+margin_top = 8.0
+margin_right = 17.0
+margin_bottom = 23.0
+theme = ExtResource( 4 )
+custom_fonts/font = ExtResource( 1 )
+text = "Start"
+script = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TitleText" type="Label" parent="Control"]
+anchor_left = 0.5
+anchor_right = 0.5
+margin_left = -66.0
+margin_right = 68.0
+margin_bottom = 33.0
+custom_fonts/font = ExtResource( 2 )
+text = "Space Tutorial Game"
+align = 1
+valign = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+[connection signal="pressed" from="Control/StartButton" to="Control/StartButton" method="_on_StartButton_pressed"]

@@ -3,16 +3,17 @@
 // license that can be found in the LICENSE file.
 
 use gdnative::api::CPUParticles2D;
-use gdnative::prelude::*;
+
+use crate::*;
 
 #[derive(NativeClass)]
 #[inherit(CPUParticles2D)]
-pub struct DestroyParticles {}
+pub struct PlayerDestroyParticles {}
 
 #[methods]
-impl DestroyParticles {
+impl PlayerDestroyParticles {
     fn new(_owner: &CPUParticles2D) -> Self {
-        DestroyParticles {}
+        PlayerDestroyParticles {}
     }
 
     #[export]
@@ -23,6 +24,11 @@ impl DestroyParticles {
     #[allow(non_snake_case)]
     #[export]
     fn _on_Timer_timeout(&self, owner: &CPUParticles2D) {
-        owner.queue_free();
+        owner.get_tree()
+            .map(|tree| unsafe { tree.assume_safe() })
+            .and_then(|tree| { tree.change_scene("res://ui/TitleScreen.tscn").ok() })
+            .expect("Failed to reload");
+
+        godot_print!("-----------");
     }
 }

@@ -16,11 +16,12 @@ _global_script_class_icons={
 [application]
 
 config/name="tutorial_space-sidescroller"
-run/main_scene="res://World.tscn"
+run/main_scene="res://ui/TitleScreen.tscn"
 
-[autoload]
+[debug]
 
-Global="*res://Global.gdns"
+gdscript/warnings/unsafe_property_access=true
+gdscript/warnings/unsafe_method_access=true
 
 [display]
 

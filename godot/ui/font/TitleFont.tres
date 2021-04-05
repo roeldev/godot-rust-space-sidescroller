@@ -1,0 +1,8 @@
+[gd_resource type="DynamicFont" load_steps=2 format=2]
+
+[ext_resource path="res://ui/font/pixelated.ttf" type="DynamicFontData" id=1]
+
+[resource]
+outline_size = 1
+outline_color = Color( 0.321569, 0.0941176, 0.298039, 1 )
+font_data = ExtResource( 1 )

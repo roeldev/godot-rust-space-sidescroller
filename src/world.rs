@@ -2,9 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-use gdnative::prelude::*;
 use crate::*;
-use crate::global::Global;
+use crate::utils::singleton::SingletonInstance;
 
 pub const ON_INSTANCE_NODE: &str = "_on_instance_node";
 
@@ -19,35 +18,25 @@ impl World {
     }
 
     #[export]
-    fn _ready(&self, owner: &Node) {
-        Global::instance(owner)
-            .map_mut(|global, _| unsafe {
-                global.set_world(Some(owner.assume_shared()))
-            })
-            .expect("Failed to set Global.world");
-
+    fn _ready(&self, _owner: &Node) {
         godot_print!("> world ready");
     }
 
     #[export]
-    fn _exit_tree(&self, owner: &Node) {
-        Global::instance(owner)
-            .map_mut(|global, _| { global.set_world(None) })
-            .expect("Failed to set Global.world");
-    }
-
-    #[export]
-    fn _on_instance_node(&self, owner: &Node, node: Variant, location: Variant) -> TRef<Node2D> {
-        let instance = utils::try_variant_to_instance(node, PackedScene::GEN_EDIT_STATE_DISABLED).unwrap();
-        let instance = unsafe { instance.assume_safe() };
-        let node = instance.cast::<Node2D>()
-            .expect("Failed to cast `node` to Node2D");
+    fn _on_instance_node(&self, owner: &Node, scene: Ref<PackedScene, Shared>, location: Vector2) {
+        let scene = unsafe { scene.assume_safe() };
+        let node = scene.instance(PackedScene::GEN_EDIT_STATE_DISABLED)
+            .map(|node| unsafe { node.assume_safe() })
+            .unwrap();
 
         owner.add_child(node, false);
-        node.set_global_position(location
-            .try_to_vector2()
-            .expect("Failed to try `location` as Vector2")
-        );
-        return node;
+        match node.cast::<Node2D>() {
+            Some(node) => { node.set_global_position(location); }
+            None => {}
+        }
     }
+}
+
+impl SingletonInstance<Self, Node> for World {
+    fn node_path<'a>() -> &'a str { "/root/World" }
 }

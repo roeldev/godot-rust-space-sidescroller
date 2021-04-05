@@ -1,17 +1,80 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=18 format=2]
 
-[ext_resource path="res://Player/Player.tscn" type="PackedScene" id=1]
+[ext_resource path="res://player/Player.tscn" type="PackedScene" id=1]
 [ext_resource path="res://World.gdns" type="Script" id=2]
-[ext_resource path="res://Enemies/EnemyGenerator.tscn" type="PackedScene" id=3]
+[ext_resource path="res://enemies/EnemyGenerator.tscn" type="PackedScene" id=3]
+[ext_resource path="res://ui/player_health.png" type="Texture" id=4]
+[ext_resource path="res://ui/PlayerHealth.gdns" type="Script" id=5]
+[ext_resource path="res://sounds/shoot.wav" type="AudioStream" id=6]
+[ext_resource path="res://sounds/SoundController.gdns" type="Script" id=7]
+[ext_resource path="res://sounds/explosion.wav" type="AudioStream" id=8]
+[ext_resource path="res://sounds/hit.wav" type="AudioStream" id=9]
+[ext_resource path="res://ui/font/ScoreFont.tres" type="DynamicFont" id=10]
+[ext_resource path="res://ui/PlayerScore.gdns" type="Script" id=11]
+[ext_resource path="res://backgrounds/StarBackground1.tscn" type="PackedScene" id=12]
+[ext_resource path="res://backgrounds/StarBackground2.tscn" type="PackedScene" id=13]
+[ext_resource path="res://backgrounds/StarBackground3.tscn" type="PackedScene" id=14]
+[ext_resource path="res://enemies/Enemy2.tscn" type="PackedScene" id=15]
+[ext_resource path="res://enemies/Enemy1.tscn" type="PackedScene" id=16]
+[ext_resource path="res://enemies/Enemy3.tscn" type="PackedScene" id=17]
+
+
+
 
 [node name="World" type="Node"]
 script = ExtResource( 2 )
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
-position = Vector2( 10, 0 )
+position = Vector2( 15, 0 )
 z_index = 1
 
 [node name="EnemyGenerator" parent="." instance=ExtResource( 3 )]
 position = Vector2( 180, 0 )
+enemy3_scene = ExtResource( 17 )
+enemy1_scene = ExtResource( 16 )
+enemy2_scene = ExtResource( 15 )
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="PlayerHealth" type="Sprite" parent="UI"]
+position = Vector2( 14, 85 )
+texture = ExtResource( 4 )
+hframes = 4
+frame = 3
+script = ExtResource( 5 )
+
+[node name="PlayerScore" type="Label" parent="UI"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -86.0
+margin_top = -10.0
+margin_right = -2.0
+custom_fonts/font = ExtResource( 10 )
+text = "Score: 0"
+align = 2
+script = ExtResource( 11 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="StarBackground1" parent="UI" instance=ExtResource( 12 )]
+
+[node name="StarBackground2" parent="UI" instance=ExtResource( 13 )]
+
+[node name="StarBackground3" parent="UI" instance=ExtResource( 14 )]
+
+[node name="SoundController" type="Node" parent="."]
+script = ExtResource( 7 )
+
+[node name="Shoot" type="AudioStreamPlayer" parent="SoundController"]
+stream = ExtResource( 6 )
+
+[node name="Explosion" type="AudioStreamPlayer" parent="SoundController"]
+stream = ExtResource( 8 )
+
+[node name="Hit" type="AudioStreamPlayer" parent="SoundController"]
+stream = ExtResource( 9 )
 [connection signal="instance_node" from="Player" to="." method="_on_instance_node"]
 [connection signal="instance_node" from="EnemyGenerator" to="." method="_on_instance_node"]

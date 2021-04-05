@@ -4,23 +4,33 @@
 
 use gdnative::prelude::*;
 
-mod global;
 mod world;
+mod background;
 mod player;
-mod enemies;
+mod enemy;
 mod particles;
 mod signals;
+mod sound;
+mod ui;
 mod utils;
 
 fn init(handle: InitHandle) {
-    handle.add_class::<global::Global>();
     handle.add_class::<world::World>();
+    handle.add_class::<background::ParallaxStarBackground>();
+
+    handle.add_class::<ui::PlayerHealth>();
+    handle.add_class::<ui::PlayerScore>();
+
     handle.add_class::<player::Player>();
     handle.add_class::<player::PlayerBullet>();
-    handle.add_class::<player::PlayerDestroyParticles>();
-    handle.add_class::<enemies::EnemyGenerator>();
-    handle.add_class::<enemies::Enemy1>();
+    handle.add_class::<player::effects::PlayerDestroyParticles>();
+
+    handle.add_class::<enemy::EnemyGenerator>();
+    handle.add_class::<enemy::Enemy>();
+
     handle.add_class::<particles::DestroyParticles>();
+
+    handle.add_class::<sound::SoundController>();
 }
 
 godot_init!(init);

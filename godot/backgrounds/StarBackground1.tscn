@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://backgrounds/ParallaxBackground.gdns" type="Script" id=1]
+[ext_resource path="res://backgrounds/Star_background_1.png" type="Texture" id=2]
+
+[node name="StarBackground1" type="ParallaxBackground"]
+script = ExtResource( 1 )
+speed = 65.0
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="."]
+motion_mirroring = Vector2( 160, 0 )
+
+[node name="Sprite" type="Sprite" parent="ParallaxLayer"]
+texture = ExtResource( 2 )
+centered = false
