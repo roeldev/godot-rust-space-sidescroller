@@ -2,13 +2,19 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-use crate::*;
-use gdnative::api::{Area2D, CPUParticles2D};
-use interpolation::Lerp;
 use std::borrow::Borrow;
 
-const RES_BULLET: &str = "res://Player/Bullet/PlayerBullet.tscn";
-const RES_PARTICLES: &str = "res://Player/PlayerDestroyParticles.tscn";
+use gdnative::api::Area2D;
+use interpolation::Lerp;
+
+use crate::*;
+use crate::enemy::Enemy;
+use crate::utils::convert::TryInstanceFrom;
+use crate::utils::singleton::SingletonInstance;
+use crate::utils::utils;
+use crate::player::*;
+use crate::signals::instance_node::InstanceNodeEmitter;
+use crate::sound::SoundController;
 
 #[derive(NativeClass)]
 #[inherit(Sprite)]
@@ -17,13 +23,16 @@ pub struct Player {
     bullet_scene: Ref<PackedScene>,
     particles_scene: Ref<PackedScene>,
     reload_timer_node: Ref<Node>,
+
     can_shoot: bool,
+    health: u8,
+    score: u32,
 }
 
 #[methods]
 impl Player {
-    fn register_signals<'a>(builder: &ClassBuilder<Self>) {
-        signals::instance_node_signal::<Self>(builder);
+    fn register_signals(builder: &ClassBuilder<Self>) {
+        Self::add_instance_node_signal(builder);
     }
 
     fn new(_owner: &Sprite) -> Self {
@@ -31,11 +40,23 @@ impl Player {
             bullet_scene: PackedScene::new().into_shared(),
             particles_scene: PackedScene::new().into_shared(),
             reload_timer_node: unsafe { Node::new().assume_shared() },
+
             can_shoot: true,
+            health: 3,
+            score: 0,
         }
     }
 
-    pub fn get_viewport(&self, owner: &Sprite) -> TRef<Viewport> {
+    pub fn destroy(&self, owner: &Sprite) {
+        self.emit_instance_node(
+            owner,
+            self.particles_scene.borrow(),
+            owner.global_position().clone(),
+        );
+        owner.queue_free();
+    }
+
+    pub fn get_viewport(&self, owner: &Node) -> TRef<Viewport> {
         let viewport = owner.get_viewport().expect("Failed to get Viewport");
         unsafe { viewport.assume_safe() }
     }
@@ -44,6 +65,12 @@ impl Player {
         let reload_timer = unsafe { self.reload_timer_node.assume_safe() };
         reload_timer.cast::<Timer>().expect("Failed to cast ReloadTimer node to Timer")
     }
+
+    pub fn get_health(&self) -> u8 { self.health }
+
+    pub fn get_score(&self) -> u32 { self.score }
+
+    pub fn add_score(&mut self, add: u32) { self.score += add; }
 
     #[export]
     fn _ready(&mut self, owner: &Sprite) {
@@ -66,7 +93,11 @@ impl Player {
         owner.set_global_position(pos);
 
         if Input::godot_singleton().is_action_pressed("shoot") && self.can_shoot {
-            owner.emit_signal(signals::INSTANCE_NODE, &[
+            SoundController::try_do(owner, |sc, sc_node| {
+                sc.play_sound(sc_node.as_ref(), sound::SHOOT);
+            });
+
+            owner.emit_signal(signals::instance_node::SIGNAL, &[
                 Variant::from_object(self.bullet_scene.borrow()),
                 Variant::from_vector2(&pos)
             ]);
@@ -78,23 +109,26 @@ impl Player {
 
     #[allow(non_snake_case)]
     #[export]
-    fn _on_Hitbox_area_entered(&self, owner: &Sprite, area: Variant) {
-        let area: Ref<Area2D> = area.try_to_object::<Area2D>().expect("Failed to try area Variant to Area2D");
+    fn _on_Hitbox_area_entered(&mut self, owner: &Sprite, area: Ref<Area2D>) {
         let area = unsafe { area.assume_safe() };
         if !area.is_in_group("enemy") {
             return;
         }
 
-        let enemy = area.get_parent().unwrap();
-        let enemy = unsafe { enemy.assume_safe() };
+        Enemy::try_instance_from(area.get_parent())
+            .expect("Failed to get enemy from Area2D")
+            .borrow()
+            .map(|enemy, node| { enemy.destroy(node.borrow()); })
+            .expect("Failed to destroy enemy");
 
-        enemy.queue_free();
-        owner.queue_free();
+        self.health -= 1;
+        if self.health == 0 {
+            SoundController::try_do(owner, |sc, sc_node| {
+                sc.play_sound(sc_node.as_ref(), sound::EXPLOSION)
+            });
 
-        owner.emit_signal(signals::INSTANCE_NODE, &[
-            Variant::from_object(self.particles_scene.borrow()),
-            Variant::from_vector2(owner.global_position().clone().borrow()),
-        ]);
+            self.destroy(owner);
+        }
     }
 
     #[allow(non_snake_case)]
@@ -105,59 +139,8 @@ impl Player {
     }
 }
 
-#[derive(NativeClass)]
-#[inherit(Sprite)]
-pub struct PlayerBullet {
-    #[property(default = 100.0)]
-    speed: f32,
+impl SingletonInstance<Self, Sprite> for Player {
+    fn node_path<'a>() -> &'a str { "/root/World/Player" }
 }
 
-#[methods]
-impl PlayerBullet {
-    fn new(_owner: &Sprite) -> Self {
-        PlayerBullet {
-            speed: 100.0,
-        }
-    }
-
-    // #[export]
-    // fn _ready(&self, _owner: &Sprite) {
-    //     godot_print!("> player bullet ready");
-    // }
-
-    #[export]
-    fn _process(&self, owner: &Sprite, delta: f32) {
-        let mut pos = owner.global_position();
-        pos.x += self.speed * delta;
-        owner.set_global_position(pos);
-
-        if pos.x > 180.0 {
-            owner.queue_free();
-        }
-    }
-}
-
-#[derive(NativeClass)]
-#[inherit(CPUParticles2D)]
-pub struct PlayerDestroyParticles {}
-
-#[methods]
-impl PlayerDestroyParticles {
-    fn new(_owner: &CPUParticles2D) -> Self {
-        PlayerDestroyParticles {}
-    }
-
-    #[export]
-    fn _ready(&self, owner: &CPUParticles2D) {
-        owner.set_one_shot(true);
-    }
-
-    #[allow(non_snake_case)]
-    #[export]
-    fn _on_Timer_timeout(&self, owner: &CPUParticles2D) {
-        let tree = owner.get_tree().expect("Failed to get SceneTree");
-        let tree = unsafe { tree.assume_safe() };
-        tree.reload_current_scene().expect("Failed to reload");
-        godot_print!("-----------");
-    }
-}
+impl InstanceNodeEmitter<Self> for Player {}
